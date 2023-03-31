@@ -16,5 +16,5 @@ COPY pyproject.toml ./
 COPY *.py ./
 
 RUN poetry install
-ENTRYPOINT ["poetry", "run", "kopf", "run", "--log-format=json"]
+ENTRYPOINT ["poetry", "run", "kopf", "run", "--log-format=json", "--verbose"]
 CMD ["/src/backup.py"]
