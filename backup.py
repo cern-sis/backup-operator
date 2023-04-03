@@ -27,7 +27,7 @@ def create_cronjob(spec, body, **kwargs):
                                 client.V1Container(
                                     name="backup",
                                     image="alpine",
-                                    command=["/bin/bash", "-c"],
+                                    command=["sh", "-c"],
                                     args=["each Job Pod is Running ; sleep 5"],
                                     resources=client.V1ResourceRequirements(
                                         limits={
