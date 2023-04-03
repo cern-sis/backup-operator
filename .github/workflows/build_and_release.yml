@@ -30,7 +30,7 @@ jobs:
           tags: inspirehep/backup-operator:${{ github.sha }}
   deploy:
     needs: [push_to_registries]
-    uses: cern-sis/gh-workflows/.github/workflows/update-image-reference@v3.0.0
+    uses: cern-sis/gh-workflows/.github/workflows/update-image-reference.yml@v3.0.0
     with:
       project: backup-operator
       application: backup-operator
