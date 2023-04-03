@@ -26,9 +26,9 @@ def create_cronjob(spec, body, **kwargs):
                             containers=[
                                 client.V1Container(
                                     name="backup",
-                                    image="alpine",
-                                    command=["sh", "-c"],
-                                    args=["each Job Pod is Running ; sleep 5"],
+                                    image="""
+                                          inspirehep/cronjob-controller:abb509a075a946c9f3dbf58051b2cdd909000863
+                                          """,
                                     resources=client.V1ResourceRequirements(
                                         limits={
                                             "cpu": spec["jobResources"]["cpu"],
