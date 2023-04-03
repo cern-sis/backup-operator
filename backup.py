@@ -1,3 +1,5 @@
+import logging
+
 import kopf
 from kubernetes import client, config
 
@@ -49,5 +51,6 @@ def create_cronjob(spec, body, **kwargs):
 
     # Create the CronJob
     api.create_namespaced_cron_job(namespace=spec["namespace"], body=cron_job)
+    logging.info("cronjob is created")
 
     return {"message": "CronJob {} created".format(cron_job_name)}
