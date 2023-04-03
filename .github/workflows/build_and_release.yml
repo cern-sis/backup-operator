@@ -35,7 +35,7 @@ jobs:
       project: backup-operator
       application: backup-operator
       namespace: backup-operator
-      ref_type: digest
+      ref_type: tag
       new_ref: ${{ github.sha }}
       image: inspirehep/backup-operator
     secrets:
