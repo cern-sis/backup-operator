@@ -1,6 +1,53 @@
 import kopf
-import logging
+from kubernetes import client, config
 
-@kopf.on.create('Backup')
-def create_fn(body, **kwargs):
-    logging.info(f"A handler is called with body: {body}")
+
+@kopf.on.create("Backup")
+def create_cronjob(spec, body, **kwargs):
+    config.load_incluster_config()
+    api = client.BatchV1beta1Api()
+
+    job_name = body["metadata"]["name"]
+    cron_job_name = job_name + "-cronjob"
+
+    # Define the CronJob object
+    cron_job = client.V1beta1CronJob(
+        api_version="batch/v1beta1",
+        kind="CronJob",
+        metadata=client.V1ObjectMeta(name=cron_job_name),
+        spec=client.V1beta1CronJobSpec(
+            schedule=spec["schedule"],
+            job_template=client.V1beta1JobTemplateSpec(
+                spec=client.V1JobSpec(
+                    template=client.V1PodTemplateSpec(
+                        spec=client.V1PodSpec(
+                            containers=[
+                                client.V1Container(
+                                    name="backup",
+                                    image="alpine",
+                                    command=["/bin/bash", "-c"],
+                                    args=["each Job Pod is Running ; sleep 5"],
+                                    resources=client.V1ResourceRequirements(
+                                        limits={
+                                            "cpu": spec["jobResources"]["cpu"],
+                                            "memory": spec["jobResources"]["memory"],
+                                        },
+                                        requests={
+                                            "cpu": spec["jobResources"]["cpu"],
+                                            "memory": spec["jobResources"]["memory"],
+                                        },
+                                    ),
+                                )
+                            ],
+                            restart_policy="Never",
+                        )
+                    )
+                )
+            ),
+        ),
+    )
+
+    # Create the CronJob
+    api.create_namespaced_cron_job(namespace=spec["namespace"], body=cron_job)
+
+    return {"message": "CronJob {} created".format(cron_job_name)}
