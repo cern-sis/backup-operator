@@ -39,14 +39,14 @@ def create_cronjob(spec, body, **kwargs):
                                         },
                                     ),
                                     env=[client.V1EnvVar(name='RCLONE_CONFIG_MEYRIN_TYPE', value=spec['source']['remoteType']),
-                                         client.V1.EnvVar(name='RCLONE_CONFIG_MEYRIN_PROVIDER', value=spec['source']['provider']),
+                                         client.V1EnvVar(name='RCLONE_CONFIG_MEYRIN_PROVIDER', value=spec['source']['provider']),
                                          client.V1EnvVar(name='RCLONE_CONFIG_MEYRIN_ENDPOINT', value=spec['source']['endPoint']),
                                          client.V1EnvVar(name='RCLONE_CONFIG_S3_TYPE', value=spec['destination']['remoteType']),
                                          client.V1EnvVar(name='RCLONE_CONFIG_S3_PROVIDER', value=spec['destination']['provider']),
                                          client.V1EnvVar(name='RCLONE_CONFIG_S3_ENDPOINT', value=spec['destination']['endPoint']),
                                          # we can just pass the secret name as env variable and access it from the cronjob controller script
-                                         client.V1.EnvVar(name='MEYRIN_SECRET_KEY', value=spec['source']['secretName']),
-                                         client.V1.EnvVar(name='PREVESSIN_SECRET_KEY', value=spec['destination']['secretName']),
+                                         client.V1EnvVar(name='MEYRIN_SECRET_KEY', value=spec['source']['secretName']),
+                                         client.V1EnvVar(name='PREVESSIN_SECRET_KEY', value=spec['destination']['secretName']),
                                         ]
                                 )
                             ],
