@@ -13,7 +13,8 @@ def create_cronjob(spec, body, **kwargs):
     cron_job_name = job_name + "-cronjob"
 
     buckets = spec["buckets"]
-    logging.info(buckets)
+    buckets_string = ",".join(buckets)
+    logging.info(buckets_string)
     # Define the CronJob object
     cron_job = client.V1beta1CronJob(
         api_version="batch/v1beta1",
@@ -73,7 +74,7 @@ def create_cronjob(spec, body, **kwargs):
                                             value=spec["destination"]["secretName"],
                                         ),
                                         client.V1EnvVar(
-                                            name="BUCKET_LIST", value=["buckets"]
+                                            name="BUCKET_LIST", value=buckets_string
                                         ),
                                     ],
                                 )
