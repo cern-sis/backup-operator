@@ -13,6 +13,7 @@ def create_cronjob(spec, body, **kwargs):
     cron_job_name = job_name + "-cronjob"
 
     # Define the CronJob object
+    # we need to pass all the rclone config and the secrets from the crd to the cronjob
     cron_job = client.V1beta1CronJob(
         api_version="batch/v1beta1",
         kind="CronJob",
@@ -37,6 +38,16 @@ def create_cronjob(spec, body, **kwargs):
                                             "memory": spec["jobResources"]["memory"],
                                         },
                                     ),
+                                    env=[client.V1EnvVar(name='RCLONE_CONFIG_MEYRIN_TYPE', value=spec['source']['remoteType']),
+                                         client.V1.EnvVar(name='RCLONE_CONFIG_MEYRIN_PROVIDER', value=spec['source']['provider']),
+                                         client.V1EnvVar(name='RCLONE_CONFIG_MEYRIN_ENDPOINT', value=spec['source']['endPoint']),
+                                         client.V1EnvVar(name='RCLONE_CONFIG_S3_TYPE', value=spec['destination']['remoteType']),
+                                         client.V1EnvVar(name='RCLONE_CONFIG_S3_PROVIDER', value=spec['destination']['provider']),
+                                         client.V1EnvVar(name='RCLONE_CONFIG_S3_ENDPOINT', value=spec['destination']['endPoint']),
+                                         # we can just pass the secret name as env variable and access it from the cronjob controller script
+                                         client.V1.EnvVar(name='MEYRIN_SECRET_KEY', value=spec['source']['secretName']),
+                                         client.V1.EnvVar(name='PREVESSIN_SECRET_KEY', value=spec['destination']['secretName']),
+                                        ]
                                 )
                             ],
                             restart_policy="Never",
@@ -49,6 +60,4 @@ def create_cronjob(spec, body, **kwargs):
 
     # Create the CronJob
     api.create_namespaced_cron_job(namespace=spec["namespace"], body=cron_job)
-    logging.info("cronjob is created")
-
     return {"message": "CronJob {} created".format(cron_job_name)}
