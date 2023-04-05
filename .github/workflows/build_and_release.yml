@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch event
-        uses: cern-sis/gh-workflows/.github/actions/kubernetes-project-update@latest
+        uses: cern-sis/gh-workflows/.github/actions/kubernetes-project-update
         with:
           token: ${{ secrets.PAT_FIRE_EVENTS_ON_CERN_SIS_KUBERNETES }}
           images: inspirehep/backup-operator:${{ github.sha }}
