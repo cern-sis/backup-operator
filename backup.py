@@ -14,7 +14,6 @@ def create_cronjob(spec, body, **kwargs):
 
     buckets = spec["buckets"]
     buckets_string = ",".join(buckets)
-    logging.info(buckets_string)
     # Define the CronJob object
     cron_job = client.V1beta1CronJob(
         api_version="batch/v1beta1",
@@ -29,7 +28,7 @@ def create_cronjob(spec, body, **kwargs):
                             containers=[
                                 client.V1Container(
                                     name="backup",
-                                    image="inspirehep/cronjob-controller:8105f47c25372ee9fdc902ed4d4d327e7ae92198",
+                                    image="inspirehep/cronjob-controller:c32b3ab24f65355ac4b334ef422f01209e9bac8f",
                                     resources=client.V1ResourceRequirements(
                                         limits={
                                             "cpu": spec["jobResources"]["cpu"],
