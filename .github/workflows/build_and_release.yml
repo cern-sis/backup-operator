@@ -36,5 +36,5 @@ jobs:
         uses: cern-sis/gh-workflows/.github/actions/kubernetes-project-update@main
         with:
           token: ${{ secrets.PAT_FIRE_EVENTS_ON_CERN_SIS_KUBERNETES }}
-          images: '["inspirehep/backup-operator:${{ github.sha }}"]'
+          images: "inspirehep/backup-operator:${{ github.sha }}"
 
