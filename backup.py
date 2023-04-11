@@ -65,15 +65,40 @@ def create_cronjob(spec, body, **kwargs):
                                             value=spec["destination"]["endPoint"],
                                         ),
                                         client.V1EnvVar(
-                                            name="MEYRIN_SECRET_KEY",
-                                            value=spec["source"]["secretName"],
+                                            name="INVENIO_S3_ACCESS_KEY",
+                                            value_from=client.V1EnvVarSource(
+                                                secret_key_ref=client.V1SecretKeySelector(
+                                                    name=spec["source"]["secretName"],
+                                                    key="INVENIO_S3_ACCESS_KEY"
+                                                ),
+                                            ),
                                         ),
                                         client.V1EnvVar(
-                                            name="PREVESSIN_SECRET_KEY",
-                                            value=spec["destination"]["secretName"],
+                                            name="INVENIO_S3_SECRET_KEY",
+                                            value_from=client.V1EnvVarSource(
+                                                secret_key_ref=client.V1SecretKeySelector(
+                                                    name=spec["source"]["secretName"],
+                                                    key="INVENIO_S3_SECRET_KEY"
+                                                ),
+                                            ),
+                                        ),                                        
+                                        client.V1EnvVar(
+                                            name="RCLONE_CONFIG_S3_ACCESS_KEY_ID",
+                                            value_from=client.V1EnvVarSource(
+                                                secret_key_ref=client.V1SecretKeySelector(
+                                                    name=spec["destination"]["secretName"],
+                                                    key="RCLONE_CONFIG_S3_ACCESS_KEY_ID"
+                                                ),
+                                            ),
                                         ),
                                         client.V1EnvVar(
-                                            name="BUCKET_LIST", value=buckets_string
+                                            name="RCLONE_CONFIG_S3_SECRET_ACCESS_KEY",
+                                            value_from=client.V1EnvVarSource(
+                                                secret_key_ref=client.V1SecretKeySelector(
+                                                    name=spec["destination"]["secretName"],
+                                                    key="RCLONE_CONFIG_S3_SECRET_ACCESS_KEY"
+                                                ),
+                                            ),
                                         ),
                                     ],
                                 )
