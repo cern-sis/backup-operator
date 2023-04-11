@@ -100,6 +100,9 @@ def create_cronjob(spec, body, **kwargs):
                                                 ),
                                             ),
                                         ),
+                                        client.V1EnvVar(
+                                            name="BUCKET_LIST", value=buckets_string
+                                        )
                                     ],
                                 )
                             ],
