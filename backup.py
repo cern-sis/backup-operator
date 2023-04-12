@@ -7,6 +7,7 @@ def create_cronjob(spec, body, **kwargs):
     config.load_incluster_config()
     api = client.BatchV1beta1Api()
     v1 = client.CoreV1Api()
+    rbac_v1 = client.RbacAuthorizationV1Api()
     # create service account and rolebinding for the cronjob
     service_account = client.V1ServiceAccount(
         metadata=client.V1ObjectMeta(name="cronjob-service-account")
@@ -28,7 +29,9 @@ def create_cronjob(spec, body, **kwargs):
         ),
     )
 
-    v1.create_namespaced_role_binding(namespace=spec["namespace"], body=role_binding)
+    rbac_v1.create_namespaced_role_binding(
+        namespace=spec["namespace"], body=role_binding
+    )
     job_name = body["metadata"]["name"]
     cron_job_name = job_name + "-cronjob"
 
