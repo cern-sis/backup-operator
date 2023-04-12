@@ -8,7 +8,25 @@ from kubernetes import client, config
 def create_cronjob(spec, body, **kwargs):
     config.load_incluster_config()
     api = client.BatchV1beta1Api()
+    v1 =  client.CoreV1Api()
+    # create service account and rolebinding for the cronjob
+    service_account = client.V1ServiceAccount(
+        metadata=client.V1ObjectMeta(name="cronjob-service-account")
+    )
+    v1.create_namespaced_service_account(namespace=spec["namespace"], body=service_account)
 
+    # define role binding
+    role_binding = client.V1RoleBinding(
+        metadata=client.V1ObjectMeta(name="cronjob-role-binding"),
+        subjects=[client.V1Subject(kind="ServiceAccount", name="cronjob-service-account")],
+        role_ref=client.V1RoleRef(
+            kind="ClusterRole",
+            name="backup-operator-cluster-role",
+            api_group="rbac.authorization.k8s.io"
+        )
+    )
+
+    v1.create_namespaced_role_binding(namespace=spec["namespace"], body=role_binding)
     job_name = body["metadata"]["name"]
     cron_job_name = job_name + "-cronjob"
 
