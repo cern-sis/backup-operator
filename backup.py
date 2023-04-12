@@ -24,7 +24,7 @@ def create_cronjob(spec, body, **kwargs):
         ],
         role_ref=client.V1RoleRef(
             kind="ClusterRole",
-            name="backup-operator-cluster-role",
+            name="backup-operator-cronjob-role",
             api_group="rbac.authorization.k8s.io",
         ),
     )
