@@ -1,5 +1,3 @@
-import logging
-
 import kopf
 from kubernetes import client, config
 
@@ -8,22 +6,26 @@ from kubernetes import client, config
 def create_cronjob(spec, body, **kwargs):
     config.load_incluster_config()
     api = client.BatchV1beta1Api()
-    v1 =  client.CoreV1Api()
+    v1 = client.CoreV1Api()
     # create service account and rolebinding for the cronjob
     service_account = client.V1ServiceAccount(
         metadata=client.V1ObjectMeta(name="cronjob-service-account")
     )
-    v1.create_namespaced_service_account(namespace=spec["namespace"], body=service_account)
+    v1.create_namespaced_service_account(
+        namespace=spec["namespace"], body=service_account
+    )
 
     # define role binding
     role_binding = client.V1RoleBinding(
         metadata=client.V1ObjectMeta(name="cronjob-role-binding"),
-        subjects=[client.V1Subject(kind="ServiceAccount", name="cronjob-service-account")],
+        subjects=[
+            client.V1Subject(kind="ServiceAccount", name="cronjob-service-account")
+        ],
         role_ref=client.V1RoleRef(
             kind="ClusterRole",
             name="backup-operator-cluster-role",
-            api_group="rbac.authorization.k8s.io"
-        )
+            api_group="rbac.authorization.k8s.io",
+        ),
     )
 
     v1.create_namespaced_role_binding(namespace=spec["namespace"], body=role_binding)
@@ -43,6 +45,7 @@ def create_cronjob(spec, body, **kwargs):
                 spec=client.V1JobSpec(
                     template=client.V1PodTemplateSpec(
                         spec=client.V1PodSpec(
+                            service_account_name="cronjob-service-account",
                             containers=[
                                 client.V1Container(
                                     name="backup",
@@ -87,7 +90,7 @@ def create_cronjob(spec, body, **kwargs):
                                             value_from=client.V1EnvVarSource(
                                                 secret_key_ref=client.V1SecretKeySelector(
                                                     name=spec["source"]["secretName"],
-                                                    key="INVENIO_S3_ACCESS_KEY"
+                                                    key="INVENIO_S3_ACCESS_KEY",
                                                 ),
                                             ),
                                         ),
@@ -96,16 +99,18 @@ def create_cronjob(spec, body, **kwargs):
                                             value_from=client.V1EnvVarSource(
                                                 secret_key_ref=client.V1SecretKeySelector(
                                                     name=spec["source"]["secretName"],
-                                                    key="INVENIO_S3_SECRET_KEY"
+                                                    key="INVENIO_S3_SECRET_KEY",
                                                 ),
                                             ),
-                                        ),                                        
+                                        ),
                                         client.V1EnvVar(
                                             name="RCLONE_CONFIG_S3_ACCESS_KEY_ID",
                                             value_from=client.V1EnvVarSource(
                                                 secret_key_ref=client.V1SecretKeySelector(
-                                                    name=spec["destination"]["secretName"],
-                                                    key="RCLONE_CONFIG_S3_ACCESS_KEY_ID"
+                                                    name=spec["destination"][
+                                                        "secretName"
+                                                    ],
+                                                    key="RCLONE_CONFIG_S3_ACCESS_KEY_ID",
                                                 ),
                                             ),
                                         ),
@@ -113,14 +118,16 @@ def create_cronjob(spec, body, **kwargs):
                                             name="RCLONE_CONFIG_S3_SECRET_ACCESS_KEY",
                                             value_from=client.V1EnvVarSource(
                                                 secret_key_ref=client.V1SecretKeySelector(
-                                                    name=spec["destination"]["secretName"],
-                                                    key="RCLONE_CONFIG_S3_SECRET_ACCESS_KEY"
+                                                    name=spec["destination"][
+                                                        "secretName"
+                                                    ],
+                                                    key="RCLONE_CONFIG_S3_SECRET_ACCESS_KEY",
                                                 ),
                                             ),
                                         ),
                                         client.V1EnvVar(
                                             name="BUCKET_LIST", value=buckets_string
-                                        )
+                                        ),
                                     ],
                                 )
                             ],
