@@ -52,7 +52,7 @@ def create_cronjob(spec, body, **kwargs):
                             containers=[
                                 client.V1Container(
                                     name="backup",
-                                    image="inspirehep/cronjob-controller:12c8dd5967277cfcdf61fc01c640c2a83e802651",
+                                    image="inspirehep/cronjob-controller:c3d35693ed800e1cb7b4e94d5099bd56bd8a542d",
                                     resources=client.V1ResourceRequirements(
                                         limits={
                                             "cpu": spec["jobResources"]["cpu"],
@@ -130,6 +130,9 @@ def create_cronjob(spec, body, **kwargs):
                                         ),
                                         client.V1EnvVar(
                                             name="BUCKET_LIST", value=buckets_string
+                                        ),
+                                        client.V1EnvVar(
+                                            name="DRY_RUN", value=spec["dry-run"]
                                         ),
                                     ],
                                 )
