@@ -52,7 +52,7 @@ def create_cronjob(spec, body, **kwargs):
                             containers=[
                                 client.V1Container(
                                     name="backup",
-                                    image="inspirehep/cronjob-controller:e7f4ff53a711187b44a76afdb1fbd2de2945acd8",
+                                    image="inspirehep/cronjob-controller:d34b5a1cc5189d403d8ceb8368fccfe351f11f19",
                                     resources=client.V1ResourceRequirements(
                                         limits={
                                             "cpu": spec["jobResources"]["cpu"],
