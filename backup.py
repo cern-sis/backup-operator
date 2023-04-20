@@ -13,7 +13,7 @@ def create_cronjob(spec, body, **kwargs):
     try:
         v1.read_namespaced_service_account("cronjob-service-account", spec["NAMESPACE"])
         # service account exists - continue
-    except client.excpetions.ApiException as e:
+    except client.exceptions.ApiException as e:
         # create service account for the cronjob if doesn't exist
         if e.status == 404:
             service_account = client.V1ServiceAccount(
