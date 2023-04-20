@@ -8,30 +8,47 @@ def create_cronjob(spec, body, **kwargs):
     api = client.BatchV1beta1Api()
     v1 = client.CoreV1Api()
     rbac_v1 = client.RbacAuthorizationV1Api()
-    # create service account and rolebinding for the cronjob
-    service_account = client.V1ServiceAccount(
-        metadata=client.V1ObjectMeta(name="cronjob-service-account")
-    )
-    v1.create_namespaced_service_account(
-        namespace=spec["namespace"], body=service_account
-    )
 
-    # define role binding
-    role_binding = client.V1RoleBinding(
-        metadata=client.V1ObjectMeta(name="cronjob-role-binding"),
-        subjects=[
-            client.V1Subject(kind="ServiceAccount", name="cronjob-service-account")
-        ],
-        role_ref=client.V1RoleRef(
-            kind="ClusterRole",
-            name="backup-operator-cronjob-role",
-            api_group="rbac.authorization.k8s.io",
-        ),
-    )
+    # create the service account if it doesn't exist
+    try:
+        v1.read_namespaced_service_account("cronjob-service-account", spec["NAMESPACE"])
+        # service account exists - continue
+    except client.excpetions.ApiException as e:
+        # create service account for the cronjob if doesn't exist
+        if e.status == 404:
+            service_account = client.V1ServiceAccount(
+                metadata=client.V1ObjectMeta(name="cronjob-service-account")
+            )
+            v1.create_namespaced_service_account(
+                namespace=spec["namespace"], body=service_account
+            )
+        else:
+            raise e
 
-    rbac_v1.create_namespaced_role_binding(
-        namespace=spec["namespace"], body=role_binding
-    )
+    # create the role binding if it doesn't exist
+    try:
+        rbac_v1.read_namespaced_role_binding("cronjob-role-binding", spec["NAMESPACE"])
+    except client.expections.APiException as e:
+        if e.status == 404:
+            role_binding = client.V1RoleBinding(
+                metadata=client.V1ObjectMeta(name="cronjob-role-binding"),
+                subjects=[
+                    client.V1Subject(
+                        kind="ServiceAccount", name="cronjob-service-account"
+                    )
+                ],
+                role_ref=client.V1RoleRef(
+                    kind="ClusterRole",
+                    name="backup-operator-cronjob-role",
+                    api_group="rbac.authorization.k8s.io",
+                ),
+            )
+            rbac_v1.create_namespaced_role_binding(
+                namespace=spec["namespace"], body=role_binding
+            )
+        else:
+            raise e
+
     job_name = body["metadata"]["name"]
     cron_job_name = job_name + "-cronjob"
 
