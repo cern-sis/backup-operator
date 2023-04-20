@@ -11,7 +11,7 @@ def create_cronjob(spec, body, **kwargs):
 
     # create the service account if it doesn't exist
     try:
-        v1.read_namespaced_service_account("cronjob-service-account", spec["NAMESPACE"])
+        v1.read_namespaced_service_account("cronjob-service-account", spec["namespace"])
         # service account exists - continue
     except client.exceptions.ApiException as e:
         # create service account for the cronjob if doesn't exist
@@ -27,7 +27,7 @@ def create_cronjob(spec, body, **kwargs):
 
     # create the role binding if it doesn't exist
     try:
-        rbac_v1.read_namespaced_role_binding("cronjob-role-binding", spec["NAMESPACE"])
+        rbac_v1.read_namespaced_role_binding("cronjob-role-binding", spec["namespace"])
     except client.expections.APiException as e:
         if e.status == 404:
             role_binding = client.V1RoleBinding(
