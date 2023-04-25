@@ -28,7 +28,7 @@ def create_cronjob(spec, body, **kwargs):
     # create the role binding if it doesn't exist
     try:
         rbac_v1.read_namespaced_role_binding("cronjob-role-binding", spec["namespace"])
-    except client.expections.APiException as e:
+    except client.exceptions.APiException as e:
         if e.status == 404:
             role_binding = client.V1RoleBinding(
                 metadata=client.V1ObjectMeta(name="cronjob-role-binding"),
