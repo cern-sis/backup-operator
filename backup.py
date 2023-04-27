@@ -9,9 +9,10 @@ def create_cronjob(spec, body, **kwargs):
     v1 = client.CoreV1Api()
     rbac_v1 = client.RbacAuthorizationV1Api()
 
+    namespace = body["metadata"]["namespace"]
     # create the service account if it doesn't exist
     try:
-        v1.read_namespaced_service_account("cronjob-service-account", spec["namespace"])
+        v1.read_namespaced_service_account("cronjob-service-account", namespace)
         # service account exists - continue
     except client.exceptions.ApiException as e:
         # create service account for the cronjob if doesn't exist
@@ -20,14 +21,14 @@ def create_cronjob(spec, body, **kwargs):
                 metadata=client.V1ObjectMeta(name="cronjob-service-account")
             )
             v1.create_namespaced_service_account(
-                namespace=spec["namespace"], body=service_account
+                namespace=namespace, body=service_account
             )
         else:
             raise e
 
     # create the role binding if it doesn't exist
     try:
-        rbac_v1.read_namespaced_role_binding("cronjob-role-binding", spec["namespace"])
+        rbac_v1.read_namespaced_role_binding("cronjob-role-binding", namespace)
     except client.exceptions.ApiException as e:
         if e.status == 404:
             role_binding = client.V1RoleBinding(
@@ -44,7 +45,7 @@ def create_cronjob(spec, body, **kwargs):
                 ),
             )
             rbac_v1.create_namespaced_role_binding(
-                namespace=spec["namespace"], body=role_binding
+                namespace=namespace, body=role_binding
             )
         else:
             raise e
@@ -154,7 +155,7 @@ def create_cronjob(spec, body, **kwargs):
                                         ),
                                         client.V1EnvVar(name="DRY_RUN", value=dry_run),
                                         client.V1EnvVar(
-                                            name="NAMESPACE", value=spec["namespace"]
+                                            name="NAMESPACE", value=namespace
                                         ),
                                         client.V1EnvVar(name="TOTAL_JOBS", value=jobs),
                                     ],
@@ -169,5 +170,5 @@ def create_cronjob(spec, body, **kwargs):
     )
 
     # Create the CronJob
-    api.create_namespaced_cron_job(namespace=spec["namespace"], body=cron_job)
+    api.create_namespaced_cron_job(namespace=namespace, body=cron_job)
     return {"message": "CronJob {} created".format(cron_job_name)}
