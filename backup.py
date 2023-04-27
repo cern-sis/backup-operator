@@ -54,6 +54,7 @@ def create_cronjob(spec, body, **kwargs):
 
     buckets = spec["buckets"]
     buckets_string = ",".join(buckets)
+    jobs = str(spec["jobs"])
     # Define the CronJob object
     cron_job = client.V1beta1CronJob(
         api_version="batch/v1beta1",
@@ -156,9 +157,7 @@ def create_cronjob(spec, body, **kwargs):
                                         client.V1EnvVar(
                                             name="NAMESPACE", value=spec["namespace"]
                                         ),
-                                        client.V1EnvVar(
-                                            name="TOTAL_JOBS", value=spec["jobs"]
-                                        ),
+                                        client.V1EnvVar(name="TOTAL_JOBS", value=jobs),
                                     ],
                                 )
                             ],
