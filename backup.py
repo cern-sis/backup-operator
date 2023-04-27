@@ -155,7 +155,12 @@ def create_cronjob(spec, body, **kwargs):
                                         ),
                                         client.V1EnvVar(name="DRY_RUN", value=dry_run),
                                         client.V1EnvVar(
-                                            name="NAMESPACE", value=namespace
+                                            name="NAMESPACE",
+                                            value_from=client.V1EnvVarSource(
+                                                field_ref=client.V1ObjectFieldSelector(
+                                                    field_path="metadata.namespace"
+                                                )
+                                            ),
                                         ),
                                         client.V1EnvVar(name="TOTAL_JOBS", value=jobs),
                                     ],
