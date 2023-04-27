@@ -55,6 +55,7 @@ def create_cronjob(spec, body, **kwargs):
     buckets = spec["buckets"]
     buckets_string = ",".join(buckets)
     jobs = str(spec["jobs"])
+    dry_run = str(spec["dry-run"])
     # Define the CronJob object
     cron_job = client.V1beta1CronJob(
         api_version="batch/v1beta1",
@@ -94,7 +95,7 @@ def create_cronjob(spec, body, **kwargs):
                                         ),
                                         client.V1EnvVar(
                                             name="RCLONE_CONFIG_MEYRIN_ENDPOINT",
-                                            value=spec["source"]["endPoint"],
+                                            value=spec["source"]["endpoint"],
                                         ),
                                         client.V1EnvVar(
                                             name="RCLONE_CONFIG_S3_TYPE",
@@ -106,7 +107,7 @@ def create_cronjob(spec, body, **kwargs):
                                         ),
                                         client.V1EnvVar(
                                             name="RCLONE_CONFIG_S3_ENDPOINT",
-                                            value=spec["destination"]["endPoint"],
+                                            value=spec["destination"]["endpoint"],
                                         ),
                                         client.V1EnvVar(
                                             name="INVENIO_S3_ACCESS_KEY",
@@ -151,9 +152,7 @@ def create_cronjob(spec, body, **kwargs):
                                         client.V1EnvVar(
                                             name="BUCKET_LIST", value=buckets_string
                                         ),
-                                        client.V1EnvVar(
-                                            name="DRY_RUN", value=spec["dry-run"]
-                                        ),
+                                        client.V1EnvVar(name="DRY_RUN", value=dry_run),
                                         client.V1EnvVar(
                                             name="NAMESPACE", value=spec["namespace"]
                                         ),
