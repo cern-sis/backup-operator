@@ -61,6 +61,7 @@ def create_cronjob(spec, body, **kwargs):
         metadata=client.V1ObjectMeta(name=cron_job_name),
         spec=client.V1beta1CronJobSpec(
             schedule=spec["schedule"],
+            suspend=spec["suspend"],
             concurrency_policy="Forbid",
             job_template=client.V1beta1JobTemplateSpec(
                 spec=client.V1JobSpec(
