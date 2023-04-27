@@ -26,7 +26,7 @@ def create_cronjob(spec, body, **kwargs):
         else:
             raise e
 
-    # create the role binding if it doesn't exist
+    # create the role binding if it doesn't exist (maybe use logging)
     try:
         rbac_v1.read_namespaced_role_binding("cronjob-role-binding", namespace)
     except client.exceptions.ApiException as e:
@@ -72,9 +72,11 @@ def create_cronjob(spec, body, **kwargs):
                         spec=client.V1PodSpec(
                             service_account_name="cronjob-service-account",
                             containers=[
+                                # better to put each blobs into separate function for readability
                                 client.V1Container(
                                     name="backup",
-                                    image="inspirehep/cronjob-controller:37a4730f75233f219bcf2211d9dc5d712bcb3161",
+                                    # separate the tag into a variable
+                                    image="inspirehep/cronjob-controller:ca4c025387f3a5fc80c89bf100815fe3ba29f673",
                                     resources=client.V1ResourceRequirements(
                                         limits={
                                             "cpu": spec["jobResources"]["cpu"],
@@ -176,4 +178,5 @@ def create_cronjob(spec, body, **kwargs):
 
     # Create the CronJob
     api.create_namespaced_cron_job(namespace=namespace, body=cron_job)
+    # use fstring here
     return {"message": "CronJob {} created".format(cron_job_name)}
