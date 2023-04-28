@@ -76,7 +76,7 @@ def create_cronjob(spec, body, **kwargs):
                                 client.V1Container(
                                     name="backup",
                                     # separate the tag into a variable
-                                    image="inspirehep/cronjob-controller:c7e4b2fe0a9e7632349c8f3190e3470557639e2d",
+                                    image="inspirehep/cronjob-controller:e80b17085a5760b743f7d493152468437c82b513",
                                     resources=client.V1ResourceRequirements(
                                         limits={
                                             "cpu": spec["jobResources"]["cpu"],
