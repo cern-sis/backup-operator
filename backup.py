@@ -193,6 +193,7 @@ def create_cronjob(spec, body, **kwargs):
         ),
     )
 
+    kopf.adopt(cron_job)
     # Create the CronJob
     api.create_namespaced_cron_job(namespace=namespace, body=cron_job)
     return {"message": f"CronJob {cron_job_name} created"}
