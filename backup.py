@@ -46,7 +46,7 @@ def create_rolebinding(rbac_v1, namespace):
             raise e
 
 
-def container_env(client, spec, buckets_string, jobs, dry_run):
+def container_env(client, spec, buckets_string, jobs, dry_run, cronjob_name):
     env = [
         client.V1EnvVar(
             name="RCLONE_CONFIG_MEYRIN_TYPE",
@@ -109,6 +109,7 @@ def container_env(client, spec, buckets_string, jobs, dry_run):
             ),
         ),
         client.V1EnvVar(name="BUCKET_LIST", value=buckets_string),
+        client.V1EnvVar(name="PARENT_NAME", value=cronjob_name),
         client.V1EnvVar(name="DRY_RUN", value=dry_run),
         client.V1EnvVar(
             name="NAMESPACE",
@@ -121,11 +122,13 @@ def container_env(client, spec, buckets_string, jobs, dry_run):
     return env
 
 
-def container_specs(client, spec, buckets_string, jobs, dry_run, cronjob_image):
+def container_specs(
+    client, spec, buckets_string, jobs, dry_run, cronjob_image, cronjob_name
+):
     containers = [
         client.V1Container(
             name="backup",
-            image=f"{cronjob_image}:d8edc74f248c39348257eb69d02737f163a46c35",
+            image=f"{cronjob_image}:fb97670a78e1b86d81d0cd21bd2fa057c04242c8",
             resources=client.V1ResourceRequirements(
                 limits={
                     "cpu": spec["jobResources"]["cpu"],
@@ -136,7 +139,9 @@ def container_specs(client, spec, buckets_string, jobs, dry_run, cronjob_image):
                     "memory": spec["jobResources"]["memory"],
                 },
             ),
-            env=container_env(client, spec, buckets_string, jobs, dry_run),
+            env=container_env(
+                client, spec, buckets_string, jobs, dry_run, cronjob_name
+            ),
         )
     ]
     return containers
@@ -182,6 +187,7 @@ def create_cronjob(spec, body, **kwargs):
                                 jobs,
                                 dry_run,
                                 cronjob_image,
+                                cron_job_name,
                             ),
                             restart_policy="Never",
                         )
@@ -191,6 +197,7 @@ def create_cronjob(spec, body, **kwargs):
         ),
     )
 
+    # cleanup the cronjob when CRD is deleted
     kopf.adopt(cron_job)
     # Create the CronJob
     api.create_namespaced_cron_job(namespace=namespace, body=cron_job)
