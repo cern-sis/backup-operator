@@ -136,7 +136,7 @@ def container_specs(client, spec, buckets_string, jobs, dry_run, cronjob_image):
                     "memory": spec["jobResources"]["memory"],
                 },
             ),
-            env=[container_env(client, spec, buckets_string, jobs, dry_run)],
+            env=container_env(client, spec, buckets_string, jobs, dry_run),
         )
     ]
     return containers
@@ -175,16 +175,14 @@ def create_cronjob(spec, body, **kwargs):
                     template=client.V1PodTemplateSpec(
                         spec=client.V1PodSpec(
                             service_account_name="cronjob-service-account",
-                            containers=[
-                                container_specs(
-                                    client,
-                                    spec,
-                                    buckets_string,
-                                    jobs,
-                                    dry_run,
-                                    cronjob_image,
-                                )
-                            ],
+                            containers=container_specs(
+                                client,
+                                spec,
+                                buckets_string,
+                                jobs,
+                                dry_run,
+                                cronjob_image,
+                            ),
                             restart_policy="Never",
                         )
                     )
