@@ -1,7 +1,11 @@
 import kopf
 from kubernetes import client, config
 
-# TO-DO: write logic for on delete and on update.
+config.load_incluster_config()
+api = client.BatchV1beta1Api()
+v1 = client.CoreV1Api()
+rbac_v1 = client.RbacAuthorizationV1Api()
+cronjob_image = "inspirehep/cronjob-controller"
 
 
 def create_service_account(v1, namespace):
@@ -46,7 +50,11 @@ def create_rolebinding(rbac_v1, namespace):
             raise e
 
 
-def container_env(client, spec, buckets_string, jobs, dry_run, cronjob_name):
+def container_env(client, spec, cronjob_name):
+    buckets = spec["buckets"]
+    buckets_string = ",".join(buckets)
+    jobs = str(spec["jobs"])
+    dry_run = str(spec["dry-run"])
     env = [
         client.V1EnvVar(
             name="RCLONE_CONFIG_MEYRIN_TYPE",
@@ -122,9 +130,7 @@ def container_env(client, spec, buckets_string, jobs, dry_run, cronjob_name):
     return env
 
 
-def container_specs(
-    client, spec, buckets_string, jobs, dry_run, cronjob_image, cronjob_name
-):
+def container_specs(client, spec, cronjob_name):
     containers = [
         client.V1Container(
             name="backup",
@@ -139,9 +145,7 @@ def container_specs(
                     "memory": spec["jobResources"]["memory"],
                 },
             ),
-            env=container_env(
-                client, spec, buckets_string, jobs, dry_run, cronjob_name
-            ),
+            env=container_env(client, spec, cronjob_name),
         )
     ]
     return containers
@@ -149,22 +153,12 @@ def container_specs(
 
 @kopf.on.create("Backup")
 def create_cronjob(spec, body, **kwargs):
-    config.load_incluster_config()
-    api = client.BatchV1beta1Api()
-    v1 = client.CoreV1Api()
-    rbac_v1 = client.RbacAuthorizationV1Api()
-
     namespace = body["metadata"]["namespace"]
     create_service_account(v1, namespace)
     create_rolebinding(rbac_v1, namespace)
 
     job_name = body["metadata"]["name"]
     cron_job_name = job_name + "-cronjob"
-    buckets = spec["buckets"]
-    buckets_string = ",".join(buckets)
-    jobs = str(spec["jobs"])
-    dry_run = str(spec["dry-run"])
-    cronjob_image = "inspirehep/cronjob-controller"
 
     # Define the CronJob object
     cron_job = client.V1beta1CronJob(
@@ -183,10 +177,6 @@ def create_cronjob(spec, body, **kwargs):
                             containers=container_specs(
                                 client,
                                 spec,
-                                buckets_string,
-                                jobs,
-                                dry_run,
-                                cronjob_image,
                                 cron_job_name,
                             ),
                             restart_policy="Never",
@@ -202,3 +192,30 @@ def create_cronjob(spec, body, **kwargs):
     # Create the CronJob
     api.create_namespaced_cron_job(namespace=namespace, body=cron_job)
     return {"message": f"CronJob {cron_job_name} created"}
+
+
+@kopf.on.update("Backup")
+def update_cronjob(spec, body, **kwargs):
+    cron_job_name = body["metadata"]["name"] + "-cronjob"
+    namespace = body["metadata"]["namespace"]
+    try:
+        cronjob = api.read_namespaced_cronjob_job(
+            name=cron_job_name, namespace=namespace
+        )
+    except client.rest.ApiException as e:
+        print(f"Exception when reading cronjob: {e}")
+        return
+
+    # update cronjob specs
+    cronjob.spec.job_template.spec.template.spec.container = container_specs(
+        client, spec, cron_job_name
+    )
+
+    try:
+        api.patch_namespaced_cron_job(
+            name=cron_job_name, namespace=namespace, body=cronjob
+        )
+        print(f"Cronjob {cron_job_name} in namespace {namespace} has been updated")
+    except client.rest.ApiException as e:
+        print(f"Exception when handling patch {e}")
+        return
