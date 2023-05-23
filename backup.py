@@ -116,6 +116,10 @@ def container_env(client, spec, cronjob_name):
                 ),
             ),
         ),
+        client.V1EnvVar(name="MEMORY_LIMIT", value=spec["limit"]["memory"]),
+        client.V1EnvVar(name="CPU_LIMIT", value=spec["limit"]["cpu"]),
+        client.V1EnvVar(name="MEMORY_REQUEST", value=spec["request"]["memory"]),
+        client.V1EnvVar(name="CPU_REQUEST", value=spec["request"]["cpu"]),
         client.V1EnvVar(name="BUCKET_LIST", value=buckets_string),
         client.V1EnvVar(name="PARENT_NAME", value=cronjob_name),
         client.V1EnvVar(name="DRY_RUN", value=dry_run),
@@ -134,15 +138,15 @@ def container_specs(client, spec, cronjob_name):
     containers = [
         client.V1Container(
             name="backup",
-            image=f"{cronjob_image}:a1154282c7a1d4f084af552bf096d2bf8b173554",
+            image=f"{cronjob_image}:e5a6d8d89d9523f8939f9db8ea458e705f7661ac",
             resources=client.V1ResourceRequirements(
                 limits={
-                    "cpu": spec["jobResources"]["cpu"],
-                    "memory": spec["jobResources"]["memory"],
+                    "cpu": "2",
+                    "memory": "2Gi",
                 },
                 requests={
-                    "cpu": spec["jobResources"]["cpu"],
-                    "memory": spec["jobResources"]["memory"],
+                    "cpu": "1",
+                    "memory": "1Gi",
                 },
             ),
             env=container_env(client, spec, cronjob_name),
