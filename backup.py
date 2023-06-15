@@ -138,7 +138,7 @@ def container_specs(client, spec, cronjob_name):
     containers = [
         client.V1Container(
             name="backup",
-            image=f"{cronjob_image}:b862e53f7c56c7e11953a1c523e92e6c4bcc1e8b",
+            image=f"{cronjob_image}:14299c256cfe29b7ce0bb6efdc582fa7534b6338",
             # resources=client.V1ResourceRequirements(
             #     limits={
             #         "cpu": "2",
