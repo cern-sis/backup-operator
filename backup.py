@@ -2,8 +2,8 @@ import kopf
 from kubernetes import client, config
 
 config.load_incluster_config()
-api = client.BatchV1beta1Api()
 v1 = client.CoreV1Api()
+batch_v1 = client.BatchV1Api()
 rbac_v1 = client.RbacAuthorizationV1Api()
 cronjob_image = "inspirehep/cronjob-controller"
 
@@ -138,7 +138,7 @@ def container_specs(client, spec, cronjob_name):
     containers = [
         client.V1Container(
             name="backup",
-            image=f"{cronjob_image}:7f9e2d2dd6fb21dbc76974623f09b948d8c73651",
+            image=f"{cronjob_image}:040bf3befabcf2b4c6052eeda54d5f818e8cb829",
             # resources=client.V1ResourceRequirements(
             #     limits={
             #         "cpu": "2",
@@ -165,15 +165,15 @@ def create_cronjob(spec, body, **kwargs):
     cron_job_name = job_name + "-cronjob"
 
     # Define the CronJob object
-    cron_job = client.V1beta1CronJob(
-        api_version="batch/v1beta1",
+    cron_job = client.V1CronJob(
+        api_version="batch/v1",
         kind="CronJob",
         metadata=client.V1ObjectMeta(name=cron_job_name),
-        spec=client.V1beta1CronJobSpec(
+        spec=client.V1CronJobSpec(
             schedule=spec["schedule"],
             suspend=spec["suspend"],
             concurrency_policy="Forbid",
-            job_template=client.V1beta1JobTemplateSpec(
+            job_template=client.V1JobTemplateSpec(
                 spec=client.V1JobSpec(
                     template=client.V1PodTemplateSpec(
                         spec=client.V1PodSpec(
@@ -194,7 +194,7 @@ def create_cronjob(spec, body, **kwargs):
     # cleanup the cronjob when CRD is deleted
     kopf.adopt(cron_job)
     # Create the CronJob
-    api.create_namespaced_cron_job(namespace=namespace, body=cron_job)
+    batch_v1.create_namespaced_cron_job(namespace=namespace, body=cron_job)
     return {"message": f"CronJob {cron_job_name} created"}
 
 
@@ -203,7 +203,7 @@ def update_cronjob(spec, body, **kwargs):
     cron_job_name = body["metadata"]["name"] + "-cronjob"
     namespace = body["metadata"]["namespace"]
     try:
-        cronjob = api.read_namespaced_cronjob_job(
+        cronjob = batch_v1.read_namespaced_cronjob_job(
             name=cron_job_name, namespace=namespace
         )
     except client.rest.ApiException as e:
@@ -216,7 +216,7 @@ def update_cronjob(spec, body, **kwargs):
     )
 
     try:
-        api.patch_namespaced_cron_job(
+        batch_v1.patch_namespaced_cron_job(
             name=cron_job_name, namespace=namespace, body=cronjob
         )
         print(f"Cronjob {cron_job_name} in namespace {namespace} has been updated")
