@@ -155,7 +155,7 @@ def container_specs(client, spec, cronjob_name):
     return containers
 
 
-@kopf.on.create("Backup")
+@kopf.on.create("s3-Backup")
 def create_cronjob(spec, body, **kwargs):
     namespace = body["metadata"]["namespace"]
     create_service_account(v1, namespace)
@@ -198,7 +198,7 @@ def create_cronjob(spec, body, **kwargs):
     return {"message": f"CronJob {cron_job_name} created"}
 
 
-@kopf.on.update("Backup")
+@kopf.on.update("s3-Backup")
 def update_cronjob(spec, body, **kwargs):
     cron_job_name = body["metadata"]["name"] + "-cronjob"
     namespace = body["metadata"]["namespace"]
