@@ -51,8 +51,12 @@ def create_rolebinding(rbac_v1, namespace):
 
 
 def container_env(client, spec, cronjob_name):
-    buckets = spec["buckets"]
-    buckets_string = ",".join(buckets)
+    bucket_names = [b["name"] for b in spec["buckets"]]
+    buckets_string = ",".join(bucket_names)
+
+    # sync buckets
+    sync_buckets = [b["name"] for b in spec["buckets"] if b.get("sync")]
+    sync_string = ",".join(sync_buckets)
     jobs = str(spec["jobs"])
     dry_run = str(spec["dry-run"])
     env = [
@@ -121,6 +125,7 @@ def container_env(client, spec, cronjob_name):
         client.V1EnvVar(name="MEMORY_REQUEST", value=spec["request"]["memory"]),
         client.V1EnvVar(name="CPU_REQUEST", value=spec["request"]["cpu"]),
         client.V1EnvVar(name="BUCKET_LIST", value=buckets_string),
+        client.V1EnvVar(name="SYNC_LIST", value=sync_string),
         client.V1EnvVar(name="PARENT_NAME", value=cronjob_name),
         client.V1EnvVar(name="DRY_RUN", value=dry_run),
         client.V1EnvVar(
