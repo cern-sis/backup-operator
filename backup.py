@@ -54,8 +54,10 @@ def container_env(client, spec, cronjob_name):
     bucket_names = [b["name"] for b in spec["buckets"]]
     buckets_string = ",".join(bucket_names)
 
+    print(spec["buckets"])
     # sync buckets
     sync_buckets = [b["name"] for b in spec["buckets"] if b.get("sync")]
+    print(sync_buckets)
     sync_string = ",".join(sync_buckets)
     jobs = str(spec["jobs"])
     dry_run = str(spec["dry-run"])
